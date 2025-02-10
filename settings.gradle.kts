@@ -25,6 +25,7 @@ dependencyResolutionManagement {
             }
         }
         mavenCentral()
+        maven (url="https://download2.dynamsoft.com/maven/aar")
     }
 }
 
