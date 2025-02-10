@@ -18,7 +18,8 @@ import androidx.core.content.ContextCompat
 
 @Composable
 fun CameraView(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    analyzer: BarcodeAnalyzer
 ) {
     val localContext = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -37,7 +38,10 @@ fun CameraView(
             preview.setSurfaceProvider(previewView.surfaceProvider)
 
             val imageAnalysis = ImageAnalysis.Builder().build()
-
+            imageAnalysis.setAnalyzer(
+                ContextCompat.getMainExecutor(context),
+                analyzer
+            )
 
             runCatching {
                 cameraProviderFuture.get().unbindAll()

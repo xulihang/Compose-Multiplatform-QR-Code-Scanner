@@ -24,17 +24,20 @@ import qrcodescanner.composeapp.generated.resources.compose_multiplatform
 fun App() {
     MaterialTheme {
         var showContent by remember { mutableStateOf(false) }
+        var barcodeResult by remember {mutableStateOf("")}
         Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
             Button(onClick = { showContent = !showContent }) {
                 Text("Click me!")
             }
+            Text(barcodeResult)
             AnimatedVisibility(showContent) {
                 val scope = rememberCoroutineScope()
                 ScannerWithPermissions(
                     modifier = Modifier.padding(16.dp),
                     onScanned = {
                         scope.launch {
-                            print(it)
+                            println(it)
+                            barcodeResult = it
                         }
                         false
                     },

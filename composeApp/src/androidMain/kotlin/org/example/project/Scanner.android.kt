@@ -19,7 +19,11 @@ actual fun Scanner(
     modifier: Modifier,
     onScanned: (String) -> Boolean,
 ) {
-    CameraView(modifier)
+    val context = LocalContext.current
+    val analyzer = remember() {
+        BarcodeAnalyzer(onScanned, context)
+    }
+    CameraView(modifier,analyzer)
 }
 
 @OptIn(ExperimentalPermissionsApi::class)
