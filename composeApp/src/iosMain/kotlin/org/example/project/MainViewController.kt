@@ -1,5 +1,9 @@
 package org.example.project
 
 import androidx.compose.ui.window.ComposeUIViewController
+import kotlinx.cinterop.ExperimentalForeignApi
 
-fun MainViewController() = ComposeUIViewController { App() }
+@OptIn(ExperimentalForeignApi::class)
+fun MainViewController() = ComposeUIViewController {
+    App()
+}
