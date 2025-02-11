@@ -51,7 +51,7 @@ import platform.darwin.dispatch_get_main_queue
 @Composable
 fun UiScannerView(
     modifier: Modifier = Modifier,
-    onScanned: (String) -> Boolean
+    onScanned: (String) -> Unit
 ) {
     val coordinator = remember {
         ScannerCameraCoordinator(

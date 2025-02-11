@@ -11,7 +11,7 @@ import com.dynamsoft.cvr.EnumPresetTemplate
 
 
 class BarcodeAnalyzer(
-    private val onScanned: (String) -> Boolean,
+    private val onScanned: (String) -> Unit,
     private val context: Context,
 ) : ImageAnalysis.Analyzer {
 

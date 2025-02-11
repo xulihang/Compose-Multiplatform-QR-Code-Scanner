@@ -22,7 +22,7 @@ import androidx.compose.ui.unit.dp
 @Composable
 expect fun Scanner(
     modifier: Modifier = Modifier,
-    onScanned: (String) -> Boolean,
+    onScanned: (String) -> Unit,
 )
 
 /**
@@ -38,7 +38,7 @@ expect fun Scanner(
 @Composable
 fun ScannerWithPermissions(
     modifier: Modifier = Modifier,
-    onScanned: (String) -> Boolean,
+    onScanned: (String) -> Unit,
     permissionText: String = "Camera is required for QR Code scanning",
     openSettingsLabel: String = "Open Settings",
 ) {
@@ -71,7 +71,7 @@ fun ScannerWithPermissions(
 @Composable
 fun ScannerWithPermissions(
     modifier: Modifier = Modifier,
-    onScanned: (String) -> Boolean,
+    onScanned: (String) -> Unit,
     permissionDeniedContent: @Composable (CameraPermissionState) -> Unit,
 ) {
     val permissionState = rememberCameraPermissionState()

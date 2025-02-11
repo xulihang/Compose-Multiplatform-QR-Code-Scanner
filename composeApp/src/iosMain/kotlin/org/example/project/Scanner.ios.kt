@@ -18,7 +18,7 @@ import platform.UIKit.UIApplicationOpenSettingsURLString
 @Composable
 actual fun Scanner(
     modifier: Modifier,
-    onScanned: (String) -> Boolean, // return true to abort scanning
+    onScanned: (String) -> Unit,
 ) {
     UiScannerView(
         modifier = modifier,

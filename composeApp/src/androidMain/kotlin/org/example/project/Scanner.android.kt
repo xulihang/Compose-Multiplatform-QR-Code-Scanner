@@ -17,7 +17,7 @@ import com.google.accompanist.permissions.rememberPermissionState
 @Composable
 actual fun Scanner(
     modifier: Modifier,
-    onScanned: (String) -> Boolean,
+    onScanned: (String) -> Unit,
 ) {
     val context = LocalContext.current
     val analyzer = remember() {
