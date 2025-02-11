@@ -153,6 +153,8 @@ class ScannerCameraCoordinator(
             captureSession.addOutput(metadataOutput)
 
             metadataOutput.setMetadataObjectsDelegate(this, queue = dispatch_get_main_queue())
+            val list = listOf(platform.AVFoundation.AVMetadataObjectTypeQRCode)
+            metadataOutput.metadataObjectTypes = list
         } else {
             println("Could not add output")
             return
@@ -198,16 +200,13 @@ class ScannerCameraCoordinator(
 
     override fun captureOutput(output: platform.AVFoundation.AVCaptureOutput, didOutputMetadataObjects: List<*>, fromConnection: platform.AVFoundation.AVCaptureConnection) {
         val metadataObject = didOutputMetadataObjects.firstOrNull() as? AVMetadataMachineReadableCodeObject
+        println("output")
+        println(metadataObject?.stringValue)
         metadataObject?.stringValue?.let { onFound(it) }
     }
 
     fun onFound(code: String) {
-        captureSession.stopRunning()
-        if (!onScanned(code)) {
-            GlobalScope.launch(Dispatchers.Default) {
-                captureSession.startRunning()
-            }
-        }
+        onScanned(code)
     }
 
     fun setFrame(rect: CValue<CGRect>) {

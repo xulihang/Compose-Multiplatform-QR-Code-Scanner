@@ -17,39 +17,15 @@ kotlin {
             jvmTarget.set(JvmTarget.JVM_11)
         }
     }
-    // Initialize an instance of XCFramework to bundle and manage iOS frameworks
-    val xcf = XCFramework()
-
-    // Define the absolute paths to the framework files for both arm64 (device) and simulator architectures
-    val frameworkPath = project.file("$rootDir/iosApp/DynamsoftBarcodeReader.xcframework").absolutePath
-    val frameworkPathArm64 = "$frameworkPath/ios-arm64/"
-    val frameworkPathSimulator = "$frameworkPath/ios-arm64_x86_64-simulator/"
-
-    // Function to configure interop for a specified Kotlin Native target
-    fun configureInterop(target: org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget, frameworkPath: String) {
-        target.compilations.getByName("main") {
-            val dynamsoftBarcodeReader by cinterops.creating {
-                defFile("$rootDir/iosApp/DynamsoftBarcodeReader.def")
-                compilerOpts("-framework", "DynamsoftBarcodeReader", "-F$frameworkPath")
-                extraOpts += listOf("-compiler-option", "-fmodules")
-            }
-        }
-        target.binaries.all {
-            linkerOpts("-framework", "DynamsoftBarcodeReader", "-F$frameworkPath")
-        }
-    }
 
     listOf(
         iosX64(),
         iosArm64(),
         iosSimulatorArm64()
     ).forEach { iosTarget ->
-        val currentFrameworkPath = if (iosTarget.name.contains("arm64")) frameworkPathArm64 else frameworkPathSimulator
-        configureInterop(iosTarget, currentFrameworkPath)
         iosTarget.binaries.framework {
             baseName = "ComposeApp"
             isStatic = true
-            xcf.add(this)
         }
     }
     
