@@ -7,8 +7,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.viewinterop.UIKitInteropProperties
 import androidx.compose.ui.viewinterop.UIKitView
-import cocoapods.DynamsoftBarcodeReader.DBRLicenseVerificationListenerProtocol
-import cocoapods.DynamsoftBarcodeReader.DynamsoftBarcodeReader
 import kotlinx.cinterop.BetaInteropApi
 import kotlinx.cinterop.CValue
 import kotlinx.cinterop.ExperimentalForeignApi
@@ -22,15 +20,11 @@ import kotlinx.cinterop.value
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import platform.AVFoundation.AVCaptureConnection
 import platform.AVFoundation.AVCaptureDevice
 import platform.AVFoundation.AVCaptureDeviceInput
 import platform.AVFoundation.AVCaptureMetadataOutput
 import platform.AVFoundation.AVCaptureMetadataOutputObjectsDelegateProtocol
-import platform.AVFoundation.AVCaptureOutput
 import platform.AVFoundation.AVCaptureSession
-import platform.AVFoundation.AVCaptureVideoDataOutput
-import platform.AVFoundation.AVCaptureVideoDataOutputSampleBufferDelegateProtocol
 import platform.AVFoundation.AVCaptureVideoOrientationLandscapeLeft
 import platform.AVFoundation.AVCaptureVideoOrientationLandscapeRight
 import platform.AVFoundation.AVCaptureVideoOrientationPortrait
@@ -43,15 +37,6 @@ import platform.AVFoundation.AVMetadataObjectType
 import platform.AudioToolbox.AudioServicesPlaySystemSound
 import platform.CoreGraphics.CGRect
 import platform.CoreGraphics.CGRectZero
-import platform.CoreMedia.CMSampleBufferGetImageBuffer
-import platform.CoreMedia.CMSampleBufferRef
-import platform.CoreVideo.CVImageBufferRef
-import platform.CoreVideo.CVPixelBufferGetBaseAddress
-import platform.CoreVideo.CVPixelBufferGetBytesPerRow
-import platform.CoreVideo.CVPixelBufferGetDataSize
-import platform.CoreVideo.CVPixelBufferGetHeight
-import platform.CoreVideo.CVPixelBufferGetWidth
-import platform.CoreVideo.CVPixelBufferLockBaseAddress
 import platform.Foundation.NSError
 import platform.QuartzCore.CALayer
 import platform.QuartzCore.CATransaction
@@ -125,14 +110,13 @@ class ScannerPreviewView(private val coordinator: ScannerCameraCoordinator): UIV
 @OptIn(ExperimentalForeignApi::class)
 class ScannerCameraCoordinator(
     val onScanned: (String) -> Boolean
-): AVCaptureVideoDataOutputSampleBufferDelegateProtocol, DBRLicenseVerificationListenerProtocol, NSObject() {
+): AVCaptureMetadataOutputObjectsDelegateProtocol, NSObject() {
 
     private var previewLayer: AVCaptureVideoPreviewLayer? = null
     lateinit var captureSession: AVCaptureSession
 
     @OptIn(ExperimentalForeignApi::class, BetaInteropApi::class)
     fun prepare(layer: CALayer) {
-        DynamsoftBarcodeReader.initLicense("DLS2eyJvcmdhbml6YXRpb25JRCI6IjIwMDAwMSJ9",this)
         captureSession = AVCaptureSession()
         val device = AVCaptureDevice.defaultDeviceWithMediaType(AVMediaTypeVideo)
         if (device == null) {
@@ -160,16 +144,13 @@ class ScannerCameraCoordinator(
             return
         }
 
-        val videoDataOutput = AVCaptureVideoDataOutput()
+        val metadataOutput = AVCaptureMetadataOutput()
 
         println("Adding metadata output")
-        if (captureSession.canAddOutput(videoDataOutput)) {
-            captureSession.addOutput(videoDataOutput)
-            val map = HashMap<Any?, Any>()
-            map.put(platform.CoreVideo.kCVPixelBufferPixelFormatTypeKey,platform.CoreVideo.kCVPixelFormatType_32BGRA)
-            videoDataOutput.videoSettings = map
-            videoDataOutput.setSampleBufferDelegate(this, queue = dispatch_get_main_queue())
-            //metadataOutput.setMetadataObjectsDelegate(this, queue = dispatch_get_main_queue())
+        if (captureSession.canAddOutput(metadataOutput)) {
+            captureSession.addOutput(metadataOutput)
+
+            metadataOutput.setMetadataObjectsDelegate(this, queue = dispatch_get_main_queue())
         } else {
             println("Could not add output")
             return
@@ -197,21 +178,6 @@ class ScannerCameraCoordinator(
         }
     }
 
-    override fun captureOutput(
-        output: AVCaptureOutput,
-        didOutputSampleBuffer: CMSampleBufferRef?,
-        fromConnection: AVCaptureConnection
-    ) {
-        println("delegate")
-        val imageBuffer: CVImageBufferRef? =  CMSampleBufferGetImageBuffer(didOutputSampleBuffer)
-        //CVPixelBufferLockBaseAddress(imageBuffer,platform.CoreVideo.CVPixelBufferLockFlags)
-        val baseAddress = CVPixelBufferGetBaseAddress(imageBuffer)
-        val bufferSize = CVPixelBufferGetDataSize(imageBuffer)
-        val width = CVPixelBufferGetWidth(imageBuffer)
-        val height = CVPixelBufferGetHeight(imageBuffer)
-        val bpr = CVPixelBufferGetBytesPerRow(imageBuffer)
-        println(width)
-    }
 
     fun setCurrentOrientation(newOrientation: UIDeviceOrientation) {
         when(newOrientation) {
@@ -228,6 +194,11 @@ class ScannerCameraCoordinator(
         }
     }
 
+    override fun captureOutput(output: platform.AVFoundation.AVCaptureOutput, didOutputMetadataObjects: List<*>, fromConnection: platform.AVFoundation.AVCaptureConnection) {
+        val metadataObject = didOutputMetadataObjects.firstOrNull() as? AVMetadataMachineReadableCodeObject
+        metadataObject?.stringValue?.let { onFound(it) }
+    }
+
     fun onFound(code: String) {
         captureSession.stopRunning()
         if (!onScanned(code)) {
@@ -239,10 +210,5 @@ class ScannerCameraCoordinator(
 
     fun setFrame(rect: CValue<CGRect>) {
         previewLayer?.setFrame(rect)
-    }
-
-    override fun DBRLicenseVerificationCallback(isSuccess: Boolean, error: NSError?) {
-        println("license initialization result:")
-        println(isSuccess)
     }
 }
