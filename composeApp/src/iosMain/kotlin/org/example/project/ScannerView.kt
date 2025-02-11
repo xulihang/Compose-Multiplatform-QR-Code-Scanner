@@ -47,6 +47,7 @@ import platform.UIKit.UIView
 import platform.darwin.NSObject
 import platform.darwin.dispatch_get_main_queue
 
+
 @Composable
 fun UiScannerView(
     modifier: Modifier = Modifier,
@@ -117,6 +118,7 @@ class ScannerCameraCoordinator(
 
     @OptIn(ExperimentalForeignApi::class, BetaInteropApi::class)
     fun prepare(layer: CALayer) {
+
         captureSession = AVCaptureSession()
         val device = AVCaptureDevice.defaultDeviceWithMediaType(AVMediaTypeVideo)
         if (device == null) {
