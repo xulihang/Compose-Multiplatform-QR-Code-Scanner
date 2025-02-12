@@ -110,7 +110,7 @@ class ScannerPreviewView(private val coordinator: ScannerCameraCoordinator): UIV
 
 @OptIn(ExperimentalForeignApi::class)
 class ScannerCameraCoordinator(
-    val onScanned: (String) -> Boolean
+    val onScanned: (String) -> Unit
 ): AVCaptureMetadataOutputObjectsDelegateProtocol, NSObject() {
 
     private var previewLayer: AVCaptureVideoPreviewLayer? = null
