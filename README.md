@@ -1,3 +1,17 @@
+# Compose Multiplatform QR Code Scanner
+
+A Compose Multiplatform QR Code Scanning demo using [Dynamsoft Barcode Reader](https://www.dynamsoft.com/barcode-reader/overview/).
+
+Demo video:
+
+https://github.com/user-attachments/assets/ada83322-7a1a-46fc-bd60-a2a838815806
+
+## License
+
+You can apply for a license [here](https://www.dynamsoft.com/customer/license/trialLicense/?product=dcv&package=cross-platform)
+
+## Kotlin Multiplatform
+
 This is a Kotlin Multiplatform project targeting Android, iOS.
 
 * `/composeApp` is for code that will be shared across your Compose Multiplatform applications.
