@@ -64,8 +64,11 @@ import platform.CoreVideo.CVPixelBufferLockFlags
 import platform.CoreVideo.CVPixelBufferRef
 import platform.CoreVideo.CVPixelBufferUnlockBaseAddress
 import platform.Foundation.NSData
+import platform.Foundation.NSDate
 import platform.Foundation.NSError
+import platform.Foundation.NSTimeInterval
 import platform.Foundation.create
+import platform.Foundation.timeIntervalSince1970
 import platform.QuartzCore.CALayer
 import platform.QuartzCore.CATransaction
 import platform.QuartzCore.kCATransactionDisableActions
@@ -146,10 +149,11 @@ class ScannerCameraCoordinator(
     private var previewLayer: AVCaptureVideoPreviewLayer? = null
     lateinit var captureSession: AVCaptureSession
     lateinit var barcodeReader: DynamsoftBarcodeReader
-    private var decoding = false;
+    var lastTime: Long = 0
+
     @OptIn(ExperimentalForeignApi::class, BetaInteropApi::class)
     fun prepare(layer: CALayer) {
-        DynamsoftBarcodeReader.initLicense("DLS2eyJvcmdhbml6YXRpb25JRCI6IjIwMDAwMSJ9",this)
+        DynamsoftBarcodeReader.initLicense("DLS2eyJvcmdhbml6YXRpb25JRCI6IjIwMDAwMSJ9", this)
         barcodeReader = DynamsoftBarcodeReader()
         captureSession = AVCaptureSession()
         val device = AVCaptureDevice.defaultDeviceWithMediaType(AVMediaTypeVideo)
@@ -184,7 +188,10 @@ class ScannerCameraCoordinator(
         if (captureSession.canAddOutput(videoDataOutput)) {
             captureSession.addOutput(videoDataOutput)
             val map = HashMap<Any?, Any>()
-            map.put(platform.CoreVideo.kCVPixelBufferPixelFormatTypeKey,platform.CoreVideo.kCVPixelFormatType_32BGRA)
+            map.put(
+                platform.CoreVideo.kCVPixelBufferPixelFormatTypeKey,
+                platform.CoreVideo.kCVPixelFormatType_32BGRA
+            )
             videoDataOutput.videoSettings = map
             videoDataOutput.setSampleBufferDelegate(this, queue = dispatch_get_main_queue())
             //metadataOutput.setMetadataObjectsDelegate(this, queue = dispatch_get_main_queue())
@@ -218,15 +225,20 @@ class ScannerCameraCoordinator(
 
 
     fun setCurrentOrientation(newOrientation: UIDeviceOrientation) {
-        when(newOrientation) {
+        when (newOrientation) {
             UIDeviceOrientation.UIDeviceOrientationLandscapeLeft ->
                 previewLayer?.connection?.videoOrientation = AVCaptureVideoOrientationLandscapeRight
+
             UIDeviceOrientation.UIDeviceOrientationLandscapeRight ->
                 previewLayer?.connection?.videoOrientation = AVCaptureVideoOrientationLandscapeLeft
+
             UIDeviceOrientation.UIDeviceOrientationPortrait ->
                 previewLayer?.connection?.videoOrientation = AVCaptureVideoOrientationPortrait
+
             UIDeviceOrientation.UIDeviceOrientationPortraitUpsideDown ->
-                previewLayer?.connection?.videoOrientation = AVCaptureVideoOrientationPortraitUpsideDown
+                previewLayer?.connection?.videoOrientation =
+                    AVCaptureVideoOrientationPortraitUpsideDown
+
             else ->
                 previewLayer?.connection?.videoOrientation = AVCaptureVideoOrientationPortrait
         }
@@ -238,26 +250,29 @@ class ScannerCameraCoordinator(
         fromConnection: AVCaptureConnection
     ) {
         println("delegate")
-        if (decoding == false) {
-            decoding = true
-            val imageBuffer: CVImageBufferRef? =  CMSampleBufferGetImageBuffer(didOutputSampleBuffer)
-            val ciImage = platform.CoreImage.CIImage(cVPixelBuffer=imageBuffer)
-            val cgImage = CIContext().createCGImage(ciImage,ciImage.extent)
+        println("interval")
+        val interval = NSDate().timeIntervalSince1970*1000 - lastTime
+        println(interval)
+        if (interval > 1000) {
+            println("decode")
+            val imageBuffer: CVImageBufferRef? = CMSampleBufferGetImageBuffer(didOutputSampleBuffer)
+            val ciImage = platform.CoreImage.CIImage(cVPixelBuffer = imageBuffer)
+            val cgImage = CIContext().createCGImage(ciImage, ciImage.extent)
             var image = UIImage(cgImage)
-            val result = barcodeReader.decodeImage(image,null)
 
+            val result = barcodeReader.decodeImage(image, null)
             if (result != null) {
                 println("result length: ")
                 println(result.size)
                 if (result.isNotEmpty()) {
-                    val textResult:iTextResult = result[0] as iTextResult
+                    val textResult: iTextResult = result[0] as iTextResult
                     textResult.barcodeText?.let { onFound(it) }
                 }
-            }else{
+            } else {
                 println("result is null")
             }
+            lastTime = (NSDate().timeIntervalSince1970*1000).toLong()
         }
-        decoding = false
     }
 
     fun onFound(code: String) {
@@ -274,3 +289,4 @@ class ScannerCameraCoordinator(
         println(isSuccess)
     }
 }
+   
