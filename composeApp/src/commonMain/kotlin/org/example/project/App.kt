@@ -30,7 +30,7 @@ fun App() {
                 Text("Click me!")
             }
             Text(barcodeResult)
-            AnimatedVisibility(showContent) {
+            if (showContent) {
                 val scope = rememberCoroutineScope()
                 ScannerWithPermissions(
                     modifier = Modifier.padding(16.dp),
@@ -39,7 +39,6 @@ fun App() {
                             println(it)
                             barcodeResult = it
                         }
-                        false
                     },
                 )
             }
