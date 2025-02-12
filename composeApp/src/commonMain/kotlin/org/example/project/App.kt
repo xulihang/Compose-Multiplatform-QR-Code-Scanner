@@ -26,8 +26,13 @@ fun App() {
         var showContent by remember { mutableStateOf(false) }
         var barcodeResult by remember {mutableStateOf("")}
         Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-            Button(onClick = { showContent = !showContent }) {
-                Text("Click me!")
+            Button(onClick = {
+                showContent = !showContent
+                if (showContent) {
+                    barcodeResult = ""
+                }
+            }) {
+                Text("Toggle Scanner")
             }
             Text(barcodeResult)
             if (showContent) {
